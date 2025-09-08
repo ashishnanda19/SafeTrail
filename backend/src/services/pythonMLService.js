@@ -6,8 +6,8 @@ class PythonMLService {
   constructor() {
     // Python ML model configuration
     this.pythonServiceUrl = process.env.PYTHON_ML_URL || 'http://localhost:8000';
-    this.pythonScriptPath = process.env.PYTHON_SCRIPT_PATH || './ml_model/predict.py';
-    this.csvDataPath = process.env.CSV_DATA_PATH || './ml_model/district_threat_profiles.csv';
+    this.pythonScriptPath = process.env.PYTHON_SCRIPT_PATH || path.resolve(__dirname, '../../ml_model/predict.py');
+    this.csvDataPath = process.env.CSV_DATA_PATH || path.resolve(__dirname, '../../ml_model/district_threat_profiles.csv');
     this.timeout = 10000; // 10 seconds timeout
   }
 
@@ -73,6 +73,14 @@ class PythonMLService {
   async analyzeViaScript(coordinates, userId) {
     const { spawn } = require('child_process');
     
+    console.log('🐍 Executing Python script:', this.pythonScriptPath);
+    console.log('🐍 Script arguments:', [
+      coordinates.latitude.toString(),
+      coordinates.longitude.toString(),
+      coordinates.accuracy.toString(),
+      userId
+    ]);
+    
     return new Promise((resolve, reject) => {
       const pythonProcess = spawn('python', [
         this.pythonScriptPath,
@@ -80,7 +88,9 @@ class PythonMLService {
         coordinates.longitude.toString(),
         coordinates.accuracy.toString(),
         userId
-      ]);
+      ], {
+        cwd: path.dirname(this.pythonScriptPath) // Set working directory to script location
+      });
 
       let output = '';
       let errorOutput = '';
@@ -96,15 +106,23 @@ class PythonMLService {
       pythonProcess.on('close', (code) => {
         if (code === 0) {
           try {
-            const result = JSON.parse(output);
+            // Extract JSON from output (Python script may output other text)
+            const jsonMatch = output.match(/\{.*\}/s);
+            if (!jsonMatch) {
+              throw new Error('No JSON found in Python output');
+            }
+            
+            const result = JSON.parse(jsonMatch[0]);
             console.log('✅ Python script result:', result);
             resolve(this.formatMLResponse(result));
           } catch (parseError) {
             console.error('❌ Failed to parse Python output:', parseError);
+            console.error('❌ Raw output:', output);
             reject(new Error('Invalid Python script output'));
           }
         } else {
           console.error('❌ Python script error:', errorOutput);
+          console.error('❌ Raw output:', output);
           reject(new Error(`Python script failed with code ${code}`));
         }
       });
