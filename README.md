@@ -32,3 +32,19 @@ This project leverages **AI, Geo-fencing, and Blockchain** to provide a **real-t
 - Geofence creation & analytics.  
 
 ---
+
+## 🛠️ Tech Stack  
+
+### **Frontend**  
+- **React Native** – Cross-platform development for Tourist & Responder mobile applications.  
+- **React.js** – Web-based Admin Dashboard for real-time monitoring and analytics.  
+- **Tailwind CSS** – Modern, responsive UI design and styling.  
+
+### **Backend & APIs**  
+- **Node.js + Express.js** – Core backend framework and REST API development.
+- **Flask** – Lightweight Python framework to serve ML model responses to the mobile application.
+- **Socket.io** – Real-time communication for SOS alerts and live location tracking.  
+- **Python (Planned AI Module)** – For implementing advanced distress detection features such as fall recognition and scream detection using machine learning.  
+
+### **Database & Storage**  
+- **MongoDB** – Storage and management of user, incident, and responder data.  
